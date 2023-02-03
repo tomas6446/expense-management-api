@@ -1,14 +1,13 @@
 package com.impensa.expense.service;
 
-import com.impensa.expense.dto.RegisterDTO;
-import com.impensa.expense.dto.UserDTO;
+import com.impensa.expense.dto.DashboardDTO;
 import com.impensa.expense.model.User;
 import com.impensa.expense.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 /**
  * @author Tomas Kozakas
@@ -17,28 +16,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final JwtService jwtService;
 
-    public void addUser(UserDTO userDTO) {
-        User user = User.builder()
-                .name(userDTO.getName())
-                .email(userDTO.getEmail())
-                .currency(userDTO.getCurrency())
-                .password(userDTO.getPassword())
-                .role(userDTO.getRole()).build();
+    public void save(User user) {
         userRepository.save(user);
-    }
-
-    public void deleteUser(Long studentId) {
-        if (userRepository.existsById(studentId)) {
-            userRepository.deleteById(studentId);
-        }
-    }
-
-    public List<UserDTO> getAllUsers() {
-        List<User> users = userRepository.findAll();
-        return users.stream()
-                .map(user -> new UserDTO(user.getName(), user.getEmail(), user.getCurrency(), user.getPassword(), user.getRole()))
-                .collect(Collectors.toList());
     }
 
     public boolean userExists(String email) {
@@ -50,17 +31,20 @@ public class UserService {
         return foundUser != null;
     }
 
-    public void updateUsers(Long id, UserDTO userDTO) throws Exception {
-        userRepository.findById(id)
-                .map(s -> {
-                    s.setName(userDTO.getName());
-                    s.setEmail(userDTO.getEmail());
-                    s.setCurrency(userDTO.getCurrency());
-                    s.setPassword(userDTO.getPassword());
-                    s.setRole(userDTO.getRole());
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
 
-                    return userRepository.save(s);
-                })
-                .orElseThrow(() -> new Exception("Student with id " + id + " not found"));
+    public DashboardDTO getUserFromToken(String token) {
+        String email = jwtService.extractUsername(token);
+        User foundUser = userRepository.findAll().stream()
+                .filter(user -> user.getEmail().equals(email))
+                .findFirst()
+                .orElseThrow();
+        return DashboardDTO.builder()
+                .name(foundUser.getName())
+                .currency(foundUser.getCurrency())
+                .email(foundUser.getEmail())
+                .build();
     }
 }

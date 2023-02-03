@@ -11,5 +11,6 @@ import lombok.*;
 @RequiredArgsConstructor
 public class AuthenticationResponse extends Response {
     private String message;
+    private String expiresAt;
     private String jwtToken;
 }

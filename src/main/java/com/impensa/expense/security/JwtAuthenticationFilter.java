@@ -27,6 +27,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
+    //private final HandlerExceptionResolver exceptionResolver;
+
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest httpServletRequest,
                                     @NotNull HttpServletResponse httpServletResponse,

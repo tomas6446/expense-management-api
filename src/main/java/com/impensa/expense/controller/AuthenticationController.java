@@ -25,7 +25,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Response> login(@RequestBody LoginDTO loginDTO) {
+    public ResponseEntity<Response> login(@RequestBody LoginDTO loginDTO) throws AuthorizationException {
         return ResponseEntity.ok(authenticationService.login(loginDTO));
     }
 
