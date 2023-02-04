@@ -1,16 +1,17 @@
 package com.impensa.expense.response;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.experimental.SuperBuilder;
+
+import java.util.Date;
 
 /**
  * @author Tomas Kozakas
  */
-@Data
-@Builder
-@AllArgsConstructor
-@RequiredArgsConstructor
+
+@Getter
+@SuperBuilder
 public class AuthenticationResponse extends Response {
-    private String message;
-    private String expiresAt;
+    private Date expiresAt;
     private String jwtToken;
 }

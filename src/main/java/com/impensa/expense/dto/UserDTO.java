@@ -13,8 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DashboardDTO {
+public class UserDTO {
     private String user_name;
     private String user_email;
-    private String user_currency;
 }

@@ -22,6 +22,7 @@ public class CustomExceptionHandler {
         return new ResponseEntity<>(exceptionMessage, new HttpHeaders(), ex.getStatus());
     }
 
+
     @ExceptionHandler(value = {ExpiredJwtException.class})
     public ResponseEntity<Object> handleExpiredJwtException(ExpiredJwtException ex, WebRequest request) {
         String requestUri = ((ServletWebRequest) request).getRequest().getRequestURI();

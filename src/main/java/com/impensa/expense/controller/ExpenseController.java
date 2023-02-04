@@ -1,14 +1,14 @@
 package com.impensa.expense.controller;
 
-import com.impensa.expense.dto.DashboardDTO;
 import com.impensa.expense.dto.ExpenseDTO;
-import com.impensa.expense.service.UserService;
+import com.impensa.expense.model.Expense;
+import com.impensa.expense.response.Response;
+import com.impensa.expense.service.ExpenseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @author Tomas Kozakas
@@ -18,16 +18,26 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/dashboard")
 public class ExpenseController {
+    private final ExpenseService expenseService;
 
-    private final UserService userService;
-
-    @GetMapping("/")
-    public ResponseEntity<DashboardDTO> dashboard(@RequestHeader("jwtToken") String jwtToken) {
-        return ResponseEntity.ok((userService.getUserFromToken(jwtToken)));
-    }
 
     @GetMapping("/expenses")
-    public ResponseEntity<ExpenseDTO> expenses(@RequestHeader("jwtToken") String jwtToken) {
-        return ResponseEntity.ok(new ExpenseDTO());
+    public ResponseEntity<List<Expense>> getAllExpenses(@RequestHeader("jwtToken") String jwtToken) {
+        return ResponseEntity.ok(expenseService.getAllExpenses(jwtToken));
+    }
+
+    @PostMapping("/expense")
+    public ResponseEntity<ExpenseDTO> addExpense(@RequestBody Expense expense, @RequestHeader("jwtToken") String jwtToken) {
+        return ResponseEntity.ok(expenseService.addExpense(expense, jwtToken));
+    }
+
+    @PutMapping("/expense")
+    public ResponseEntity<Response> updateExpense(@RequestBody ExpenseDTO expenseDTO) throws Exception {
+        return ResponseEntity.ok(expenseService.updateExpense(expenseDTO));
+    }
+
+    @DeleteMapping("/expense/{id}")
+    public ResponseEntity<Response> deleteExpense(@PathVariable Long id) throws Exception {
+        return ResponseEntity.ok(expenseService.deleteExpense(id));
     }
 }

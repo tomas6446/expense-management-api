@@ -14,6 +14,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 /**
  * @author Tomas Kozakas
  */
@@ -26,7 +28,7 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
 
     public Response register(RegisterDTO registerDTO) throws AuthorizationException {
-        if (userService.userExists(registerDTO.getEmail())) {
+        if (userService.findByEmail(registerDTO.getEmail()).isPresent()) {
             throw new AuthorizationException("User already exists!");
         }
         User user = User.builder()
@@ -40,24 +42,26 @@ public class AuthenticationService {
         var jwtToken = jwtService.generateToken(user);
 
         return AuthenticationResponse.builder()
+                .timestamp(LocalDateTime.now())
                 .jwtToken(jwtToken)
                 .message("Success")
-                .expiresAt(String.valueOf(jwtService.extractExpiration(jwtToken)))
+                .expiresAt(jwtService.extractExpiration(jwtToken))
                 .build();
     }
 
     public Response login(LoginDTO loginDTO) throws AuthorizationException {
-        if (!userService.userExists(loginDTO.getEmail())) {
-            throw new AuthorizationException("Invalid Credentials");
+        if (userService.findByEmail(loginDTO.getEmail()).isEmpty()) {
+            throw new AuthorizationException("Bad Credentials");
         }
 
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword()));
         User user = userService.findByEmail(loginDTO.getEmail()).orElseThrow();
         var jwtToken = jwtService.generateToken(user);
         return AuthenticationResponse.builder()
+                .timestamp(LocalDateTime.now())
                 .jwtToken(jwtToken)
                 .message("Success")
-                .expiresAt(String.valueOf(jwtService.extractExpiration(jwtToken)))
+                .expiresAt(jwtService.extractExpiration(jwtToken))
                 .build();
     }
 

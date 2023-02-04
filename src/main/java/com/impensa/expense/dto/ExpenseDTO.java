@@ -16,9 +16,10 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ExpenseDTO {
-    private Long id;
-    private Double amount;
-    private String description;
-    private String category;
-    private LocalDateTime date;
+    private Long user_id;
+    private Long expense_id;
+    private Double expense_amount;
+    private String expense_description;
+    private String expense_category;
+    private LocalDateTime expense_date;
 }

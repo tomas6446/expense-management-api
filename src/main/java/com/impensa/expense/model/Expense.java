@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
 @ToString
 @Builder
 @AllArgsConstructor
-@RequiredArgsConstructor
 public class Expense {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -28,4 +27,8 @@ public class Expense {
     private String category;
     private LocalDateTime date;
     private Long userId;
+
+    public Expense() {
+        date = LocalDateTime.now();
+    }
 }

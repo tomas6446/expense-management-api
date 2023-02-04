@@ -1,12 +1,13 @@
 package com.impensa.expense.service;
 
-import com.impensa.expense.dto.DashboardDTO;
+import com.impensa.expense.dto.UserDTO;
 import com.impensa.expense.model.User;
 import com.impensa.expense.repository.UserRepository;
+import com.impensa.expense.response.Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**
@@ -22,29 +23,38 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public boolean userExists(String email) {
-        List<User> users = userRepository.findAll();
-        User foundUser = users.stream()
-                .filter(user -> user.getEmail().equals(email))
-                .findFirst()
-                .orElse(null);
-        return foundUser != null;
-    }
-
     public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
-    public DashboardDTO getUserFromToken(String token) {
-        String email = jwtService.extractUsername(token);
-        User foundUser = userRepository.findAll().stream()
-                .filter(user -> user.getEmail().equals(email))
-                .findFirst()
-                .orElseThrow();
-        return DashboardDTO.builder()
-                .name(foundUser.getName())
-                .currency(foundUser.getCurrency())
-                .email(foundUser.getEmail())
+    public User getUserFromToken(String jwtToken) {
+        String email = jwtService.extractUsername(jwtToken);
+        return userRepository.findByEmail(email).get();
+    }
+
+    public Long getUserIdFromToken(String jwtToken) {
+        return getUserFromToken(jwtToken).getId();
+    }
+    public UserDTO getUserData(String jwtToken) {
+        User user = getUserFromToken(jwtToken);
+        return UserDTO.builder()
+                .user_email(user.getEmail())
+                .user_name(user.getName())
+                .build();
+    }
+
+    public Response updateUserData(UserDTO userDTO, String token) throws Exception {
+        Long id = getUserIdFromToken(token);
+        userRepository.findById(id)
+                .map(s -> {
+                    s.setName(userDTO.getUser_name());
+                    s.setEmail(userDTO.getUser_email());
+                    return userRepository.save(s);
+                })
+                .orElseThrow(() -> new Exception("User with id " + id + " not found"));
+        return Response.builder()
+                .timestamp(LocalDateTime.now())
+                .message("User with ID " + id + " was updated")
                 .build();
     }
 }
