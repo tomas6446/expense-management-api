@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,21 +21,34 @@ public class ExpenseService {
     private final UserService userService;
     private final ExpenseRepository expenseRepository;
 
-    public List<Expense> getAllExpenses(String jwtToken) {
+    public List<ExpenseDTO> getAllExpenses(String jwtToken) {
         Long id = userService.getUserFromToken(jwtToken).getId();
-        return expenseRepository.findAllById(Collections.singleton(id));
+        List<Expense> expenses = expenseRepository
+                .findAll()
+                .stream()
+                .filter(expense -> expense.getUserId().equals(id))
+                .toList();
+        List<ExpenseDTO> expenseDTOS = new ArrayList<>();
+        expenses.forEach(expense ->
+                expenseDTOS.add(new ExpenseDTO(id,
+                        expense.getId(),
+                        expense.getAmount(),
+                        expense.getDescription(),
+                        expense.getCategory(),
+                        expense.getDate())));
+        return expenseDTOS;
     }
 
     public ExpenseDTO addExpense(Expense expense, String jwtToken) {
-        expense.setId(userService.getUserIdFromToken(jwtToken));
+        expense.setUserId(userService.getUserIdFromToken(jwtToken));
         expenseRepository.save(expense);
         return ExpenseDTO.builder()
+                .user_id(expense.getUserId())
                 .expense_id(expense.getId())
                 .expense_amount(expense.getAmount())
                 .expense_category(expense.getCategory())
                 .expense_date(expense.getDate())
                 .expense_description(expense.getDescription())
-                .user_id(userService.getUserIdFromToken(jwtToken))
                 .build();
     }
 
@@ -46,7 +59,7 @@ public class ExpenseService {
                     s.setDate(expenseDTO.getExpense_date());
                     s.setAmount(expenseDTO.getExpense_amount());
                     s.setDescription(expenseDTO.getExpense_description());
-                    s.setId(expenseDTO.getUser_id());
+                    s.setId(expenseDTO.getExpense_id());
                     s.setUserId(expenseDTO.getUser_id());
                     return expenseRepository.save(s);
                 })

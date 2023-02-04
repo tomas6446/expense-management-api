@@ -22,7 +22,7 @@ public class ExpenseController {
 
 
     @GetMapping("/expenses")
-    public ResponseEntity<List<Expense>> getAllExpenses(@RequestHeader("jwtToken") String jwtToken) {
+    public ResponseEntity<List<ExpenseDTO>> getAllExpenses(@RequestHeader("jwtToken") String jwtToken) {
         return ResponseEntity.ok(expenseService.getAllExpenses(jwtToken));
     }
 
