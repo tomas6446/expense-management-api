@@ -12,7 +12,7 @@ A SpringBoot backend application that provides the necessary APIs to manage expe
    `git clone https://github.com/tomas6446/expense-management-app`
 2. Navigate to the project directory
 3. Setup database using database.sql file instructions
-4. Build the app with: `mvn clean install`
+4. Build the app with: `mvn clean install` and 'mvn build'
 5. Run the app with: `mvn spring-boot:run`
 
 ## Testing
