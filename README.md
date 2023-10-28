@@ -15,9 +15,6 @@ A SpringBoot backend application that provides the necessary APIs to manage expe
 4. Build the app with: `mvn clean install` and `mvn build`
 5. Run the app with: `mvn spring-boot:run`
 
-## Testing
-The project uses Diffblue AI for writing tests. To run tests, use the following command: `mvn test`
-
 ## Key Freatures
 - User authentication using SpringBoot Security
 - Password encoding using Bcrypt
