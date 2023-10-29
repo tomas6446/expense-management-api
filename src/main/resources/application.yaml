@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/impensa
+    url: jdbc:postgresql://localhost:5433/impensa_server_spring
     username: postgres
-    password: password
+    password: postgres
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -13,3 +13,5 @@ spring:
           format_sql: true
       database: postgresql
       database-platform: org.hibernate.dialect.PostgreSQLDIALECT
+security:
+  secret-key: barbimbarbimbarbimbarbimbarbimbarbimbarbimbarbimbarbimbarbimbarbimbarbimbarbimbarbimbarbimbarbimbarbimbarbim
