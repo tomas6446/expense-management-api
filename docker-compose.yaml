@@ -1,0 +1,13 @@
+services:
+  impensa-server-spring-postgres:
+    container_name: impensa-server-spring-postgres
+    image: postgres:16
+    ports:
+      - 5433:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: impensa-spring
+    volumes:
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    restart: unless-stopped
