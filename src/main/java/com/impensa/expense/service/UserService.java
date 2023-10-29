@@ -1,18 +1,19 @@
 package com.impensa.expense.service;
 
-import com.impensa.expense.dto.DashboardDTO;
-import com.impensa.expense.dto.UserDTO;
-import com.impensa.expense.dto.UserUpdateDTO;
 import com.impensa.expense.model.User;
+import com.impensa.expense.model.dto.DashboardDTO;
+import com.impensa.expense.model.dto.UserDTO;
+import com.impensa.expense.model.dto.UserUpdateDTO;
+import com.impensa.expense.model.mapper.UserMapper;
 import com.impensa.expense.repository.UserRepository;
 import com.impensa.expense.response.Response;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.UUID;
 
 /**
  * @author Tomas Kozakas
@@ -23,15 +24,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
-
-    public void save(User user) {
-        userRepository.save(user);
-    }
-
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
-
+    private final UserMapper userMapper;
     public User getUserFromToken(String jwtToken) {
         String email = jwtService.extractUsername(jwtToken);
         return userRepository.findAll()
@@ -41,43 +34,42 @@ public class UserService {
                 .orElseThrow();
     }
 
-    public Long getUserIdFromToken(String jwtToken) {
+    public UUID getUserIdFromToken(String jwtToken) {
         return getUserFromToken(jwtToken).getId();
     }
 
     public UserDTO getUserData(String jwtToken) {
         User user = getUserFromToken(jwtToken);
-        return UserDTO.builder()
-                .user_email(user.getEmail())
-                .user_name(user.getName())
-                .build();
-    }
-
-    public Response updateUserData(UserUpdateDTO userDTO, String token) throws Exception {
-        Long id = getUserIdFromToken(token);
-        userRepository.findById(id).map(s -> {
-                    if (!userDTO.getUserNewPassword().equals(userDTO.getUserPassword()) && passwordEncoder.matches(userDTO.getUserPassword(), s.getPassword())) {
-                        s.setName(userDTO.getUserName());
-                        s.setEmail(userDTO.getUserEmail());
-                        s.setPassword(passwordEncoder.encode(userDTO.getUserNewPassword()));
-                    } else {
-                        throw new BadCredentialsException("Error updating password");
-                    }
-                    return userRepository.save(s);
-                })
-                .orElseThrow(() -> new Exception("User with id " + id + " not found"));
-        return Response.builder()
-                .timestamp(LocalDateTime.now())
-                .message("User with ID " + id + " was updated")
-                .build();
+        return userMapper.toUserDTO(user);
     }
 
     public DashboardDTO getUser(String jwtToken) {
         User user = getUserFromToken(jwtToken);
-        return DashboardDTO.builder()
-                .user_name(user.getName())
-                .user_email(user.getEmail())
-                .user_currency(user.getCurrency())
+        return userMapper.toDashboardDTO(user);
+    }
+
+    @Transactional
+    public Response updateUserData(UserUpdateDTO userDTO, String token) {
+        UUID id = getUserIdFromToken(token);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("User with id " + id + " not found"));
+
+        if (!passwordEncoder.matches(userDTO.getPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Invalid current password provided.");
+        }
+
+        if (userDTO.getNewPassword().equals(userDTO.getPassword())) {
+            throw new IllegalStateException("New password cannot be the same as the current password.");
+        }
+
+        user.setName(userDTO.getName());
+        user.setEmail(userDTO.getEmail());
+        user.setPassword(passwordEncoder.encode(userDTO.getNewPassword()));
+        userRepository.save(user);
+
+        return Response.builder()
+                .timestamp(LocalDateTime.now())
+                .message("User with ID " + id + " was updated")
                 .build();
     }
 }

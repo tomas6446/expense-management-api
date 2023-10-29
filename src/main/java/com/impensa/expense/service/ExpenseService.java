@@ -1,15 +1,17 @@
 package com.impensa.expense.service;
 
-import com.impensa.expense.dto.ExpenseDTO;
 import com.impensa.expense.model.Expense;
+import com.impensa.expense.model.dto.ExpenseDTO;
+import com.impensa.expense.model.mapper.ExpenseMapper;
 import com.impensa.expense.repository.ExpenseRepository;
 import com.impensa.expense.response.Response;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Tomas Kozakas
@@ -20,57 +22,38 @@ import java.util.List;
 public class ExpenseService {
     private final UserService userService;
     private final ExpenseRepository expenseRepository;
-
+    private final ExpenseMapper expenseMapper;
     public List<ExpenseDTO> getAllExpenses(String jwtToken) {
-        Long id = userService.getUserFromToken(jwtToken).getId();
-        List<Expense> expenses = expenseRepository
+        UUID id = userService.getUserFromToken(jwtToken).getId();
+        return expenseRepository
                 .findAll()
                 .stream()
-                .filter(expense -> expense.getUserId().equals(id))
-                .toList();
-        List<ExpenseDTO> expenseDTOS = new ArrayList<>();
-        expenses.forEach(expense ->
-                expenseDTOS.add(new ExpenseDTO(id,
-                        expense.getId(),
-                        expense.getAmount(),
-                        expense.getDescription(),
-                        expense.getCategory(),
-                        expense.getDate())));
-        return expenseDTOS;
+                .filter(expense -> expense.getUserId().equals(id)).toList()
+                .stream()
+                .map(expenseMapper::toExpenseDTO).toList();
     }
 
     public ExpenseDTO addExpense(Expense expense, String jwtToken) {
         expense.setUserId(userService.getUserIdFromToken(jwtToken));
         expenseRepository.save(expense);
-        return ExpenseDTO.builder()
-                .user_id(expense.getUserId())
-                .expense_id(expense.getId())
-                .expense_amount(expense.getAmount())
-                .expense_category(expense.getCategory())
-                .expense_date(expense.getDate())
-                .expense_description(expense.getDescription())
-                .build();
+        return expenseMapper.toExpenseDTO(expense);
     }
 
-    public Response updateExpense(ExpenseDTO expenseDTO) throws Exception {
-        Long id = expenseDTO.getExpense_id();
-        expenseRepository.findById(id)
-                .map(s -> {
-                    s.setDate(expenseDTO.getExpense_date());
-                    s.setAmount(expenseDTO.getExpense_amount());
-                    s.setDescription(expenseDTO.getExpense_description());
-                    s.setId(expenseDTO.getExpense_id());
-                    s.setUserId(expenseDTO.getUser_id());
-                    return expenseRepository.save(s);
-                })
-                .orElseThrow(() -> new Exception("Expense with id " + id + " not found"));
+    @Transactional
+    public Response updateExpense(ExpenseDTO expenseDTO) {
+        Expense expense = expenseRepository.findById(expenseDTO.getExpenseId()).orElseThrow();
+
+        expenseMapper.updateExpenseFromDto(expenseDTO, expense);
+        expenseRepository.save(expense);
+
         return Response.builder()
                 .timestamp(LocalDateTime.now())
-                .message("Expense with ID " + id + " was updated")
+                .message("Expense with ID " + expenseDTO.getExpenseId() + " was updated")
                 .build();
     }
 
-    public Response deleteExpense(Long id) {
+    @Transactional
+    public Response deleteExpense(UUID id) {
         expenseRepository.deleteById(id);
         return Response.builder()
                 .timestamp(LocalDateTime.now())

@@ -1,4 +1,4 @@
-package com.impensa.expense.dto;
+package com.impensa.expense.model.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,8 +14,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserUpdateDTO {
-    private String userName;
-    private String userEmail;
-    private String userPassword;
-    private String userNewPassword;
+    private String name;
+    private String email;
+    private String password;
+    private String newPassword;
 }

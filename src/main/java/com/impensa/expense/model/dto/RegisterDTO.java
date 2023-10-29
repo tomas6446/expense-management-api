@@ -1,4 +1,4 @@
-package com.impensa.expense.dto;
+package com.impensa.expense.model.dto;
 
 import com.impensa.expense.model.Role;
 import jakarta.persistence.EnumType;
@@ -21,7 +21,5 @@ public class RegisterDTO {
     private String currency;
     private String email;
     private String password;
-
-    @Enumerated(EnumType.STRING)
     private Role role;
 }

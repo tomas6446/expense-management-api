@@ -1,17 +1,16 @@
 package com.impensa.expense.service;
 
-import com.impensa.expense.dto.LoginDTO;
-import com.impensa.expense.dto.RegisterDTO;
-import com.impensa.expense.exception.AuthorizationException;
 import com.impensa.expense.model.Role;
 import com.impensa.expense.model.User;
+import com.impensa.expense.model.dto.LoginDTO;
+import com.impensa.expense.model.dto.RegisterDTO;
+import com.impensa.expense.model.mapper.UserMapper;
+import com.impensa.expense.repository.UserRepository;
 import com.impensa.expense.response.AuthenticationResponse;
-import com.impensa.expense.response.Response;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,23 +21,19 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
-    private final UserService userService;
-    private final PasswordEncoder passwordEncoder;
+    private final UserRepository userRepository;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final UserMapper userMapper;
 
-    public Response register(RegisterDTO registerDTO) throws AuthorizationException {
-        if (userService.findByEmail(registerDTO.getEmail()).isPresent()) {
-            throw new AuthorizationException("User already exists!");
+    public AuthenticationResponse register(RegisterDTO registerDTO) throws Exception {
+        if (userRepository.findByEmail(registerDTO.getEmail()).isPresent()) {
+            throw new Exception("User already exists!");
         }
-        User user = User.builder()
-                .name(registerDTO.getName())
-                .currency(registerDTO.getCurrency())
-                .email(registerDTO.getEmail())
-                .password(passwordEncoder.encode(registerDTO.getPassword()))
-                .role(Role.USER).build();
 
-        userService.save(user);
+        User user = userMapper.registerDtoToUser(registerDTO);
+        user.setRole(Role.USER);
+        userRepository.save(user);
         var jwtToken = jwtService.generateToken(user);
 
         return AuthenticationResponse.builder()
@@ -49,14 +44,15 @@ public class AuthenticationService {
                 .build();
     }
 
-    public Response login(LoginDTO loginDTO) throws AuthorizationException {
-        if (userService.findByEmail(loginDTO.getEmail()).isEmpty()) {
-            throw new AuthorizationException("Bad Credentials");
+    public AuthenticationResponse login(LoginDTO loginDTO) throws Exception {
+        if (userRepository.findByEmail(loginDTO.getEmail()).isEmpty()) {
+            throw new Exception("Bad Credentials");
         }
 
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginDTO.getEmail(), loginDTO.getPassword()));
-        User user = userService.findByEmail(loginDTO.getEmail()).orElseThrow();
+        User user = userRepository.findByEmail(loginDTO.getEmail()).orElseThrow();
         var jwtToken = jwtService.generateToken(user);
+
         return AuthenticationResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .jwtToken(jwtToken)
@@ -65,12 +61,13 @@ public class AuthenticationService {
                 .build();
     }
 
-    public boolean verify(String jwtToken) {
+    public Boolean verify(String jwtToken) {
         User user = User.builder().email(jwtService.extractUsername(jwtToken)).build();
-        if (user != null && jwtService.isTokenValid(jwtToken, user)) {
+        if (user == null || !jwtService.isTokenValid(jwtToken, user)) {
+            throw new JwtException("Jwt not valid");
+        } else {
             return true;
         }
-        throw new JwtException("Jwt not valid");
     }
 }
 

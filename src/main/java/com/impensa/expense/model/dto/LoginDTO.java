@@ -1,4 +1,4 @@
-package com.impensa.expense.dto;
+package com.impensa.expense.model.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * @author Tomas Kozakas
@@ -26,16 +27,12 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class User implements UserDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    @Column(name = "id", nullable = false)
-    private Long id;
-
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
     private String name;
     private String email;
     private String currency;
     private String password;
-
-    @Enumerated(EnumType.STRING)
     private Role role;
 
     @Override

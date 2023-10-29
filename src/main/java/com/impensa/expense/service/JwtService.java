@@ -1,5 +1,6 @@
 package com.impensa.expense.service;
 
+import com.impensa.expense.security.SecurityProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -19,7 +20,11 @@ import java.util.function.Function;
  */
 @Service
 public class JwtService {
-    private static final String SECRET_KEY = "462D4A614E645266556A586E3272357538782F413F4428472B4B625065536856";
+    private final SecurityProperties securityProperties;
+
+    public JwtService(SecurityProperties securityProperties) {
+        this.securityProperties = securityProperties;
+    }
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -27,10 +32,7 @@ public class JwtService {
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
-        if (claims != null) {
-            return claimsResolver.apply(claims);
-        }
-        return null;
+        return claims != null ? claimsResolver.apply(claims) : null;
     }
 
     public String generateToken(UserDetails userDetails) {
@@ -70,7 +72,7 @@ public class JwtService {
     }
 
     private Key getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+        byte[] keyBytes = Decoders.BASE64.decode(securityProperties.getSecretKey());
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }
