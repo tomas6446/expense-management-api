@@ -1,12 +1,11 @@
 package com.impensa.expense.controller;
 
-import com.impensa.expense.dto.LoginDTO;
-import com.impensa.expense.dto.RegisterDTO;
-import com.impensa.expense.exception.AuthorizationException;
-import com.impensa.expense.response.Response;
+import com.impensa.expense.model.dto.LoginDTO;
+import com.impensa.expense.model.dto.RegisterDTO;
+import com.impensa.expense.response.AuthenticationResponse;
 import com.impensa.expense.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -20,17 +19,20 @@ public class AuthenticationController {
     private final AuthenticationService authenticationService;
 
     @PostMapping("/register")
-    public ResponseEntity<Response> register(@RequestBody RegisterDTO registerDTO) throws AuthorizationException {
-        return ResponseEntity.ok((authenticationService.register(registerDTO)));
+    @ResponseStatus(HttpStatus.CREATED)
+    public AuthenticationResponse register(@RequestBody RegisterDTO registerDTO) throws Exception {
+        return authenticationService.register(registerDTO);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Response> login(@RequestBody LoginDTO loginDTO) throws AuthorizationException {
-        return ResponseEntity.ok(authenticationService.login(loginDTO));
+    @ResponseStatus(HttpStatus.OK)
+    public AuthenticationResponse login(@RequestBody LoginDTO loginDTO) throws Exception {
+        return authenticationService.login(loginDTO);
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<Boolean> login(@RequestHeader("jwtToken") String jwtToken) {
-        return ResponseEntity.ok(authenticationService.verify(jwtToken));
+    @ResponseStatus(HttpStatus.OK)
+    public Boolean login(@RequestHeader("jwtToken") String jwtToken) {
+        return authenticationService.verify(jwtToken);
     }
 }

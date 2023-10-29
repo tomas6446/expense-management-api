@@ -1,14 +1,15 @@
 package com.impensa.expense.controller;
 
-import com.impensa.expense.dto.ExpenseDTO;
 import com.impensa.expense.model.Expense;
+import com.impensa.expense.model.dto.ExpenseDTO;
 import com.impensa.expense.response.Response;
 import com.impensa.expense.service.ExpenseService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Tomas Kozakas
@@ -22,22 +23,26 @@ public class ExpenseController {
 
 
     @GetMapping("/expenses")
-    public ResponseEntity<List<ExpenseDTO>> getAllExpenses(@RequestHeader("jwtToken") String jwtToken) {
-        return ResponseEntity.ok(expenseService.getAllExpenses(jwtToken));
+    @ResponseStatus(HttpStatus.OK)
+    public List<ExpenseDTO> getAllExpenses(@RequestHeader("jwtToken") String jwtToken) {
+        return expenseService.getAllExpenses(jwtToken);
     }
 
     @PostMapping("/expense")
-    public ResponseEntity<ExpenseDTO> addExpense(@RequestBody Expense expense, @RequestHeader("jwtToken") String jwtToken) {
-        return ResponseEntity.ok(expenseService.addExpense(expense, jwtToken));
+    @ResponseStatus(HttpStatus.OK)
+    public ExpenseDTO addExpense(@RequestBody Expense expense, @RequestHeader("jwtToken") String jwtToken) {
+        return expenseService.addExpense(expense, jwtToken);
     }
 
     @PutMapping("/expense")
-    public ResponseEntity<Response> updateExpense(@RequestBody ExpenseDTO expenseDTO) throws Exception {
-        return ResponseEntity.ok(expenseService.updateExpense(expenseDTO));
+    @ResponseStatus(HttpStatus.OK)
+    public Response updateExpense(@RequestBody ExpenseDTO expenseDTO) {
+        return expenseService.updateExpense(expenseDTO);
     }
 
     @DeleteMapping("/expense/{id}")
-    public ResponseEntity<Response> deleteExpense(@PathVariable Long id) throws Exception {
-        return ResponseEntity.ok(expenseService.deleteExpense(id));
+    @ResponseStatus(HttpStatus.OK)
+    public Response deleteExpense(@PathVariable UUID id) {
+        return expenseService.deleteExpense(id);
     }
 }
